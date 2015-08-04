@@ -4,10 +4,9 @@ bcrypt = Promise.promisifyAll(require 'bcrypt')
 
 { canonicalizeName } = require '../util'
 
-module.exports = (bookshelf, tablePrefix = null) ->
-  tableName = if tablePrefix then "#{tablePrefix}_users" else 'users'
+module.exports = (bookshelf, tablePrefix = '') ->
   User = bookshelf.Model.extend({
-    tableName: tableName
+    tableName: tablePrefix + 'users'
     hasTimestamps: true
   }, {
     STATUS_INACTIVE: -1
