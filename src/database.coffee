@@ -12,7 +12,10 @@ module.exports = class Database
     dataTypes =
       User: require('./database/models/user')(@bookshelf, @config.tablePrefix)
       Channel: require('./database/models/channel')(@bookshelf, @config.tablePrefix)
-      GlobalIPBan: require('./database/models/globalipban')(@bookshelf, @config.tablePrefix)
+      GlobalIPBan: require('./database/models/globalipban')(@bookshelf,
+          @config.tablePrefix)
+      SavedPlaylist: require('./database/models/savedplaylist')(@bookshelf,
+          @config.tablePrefix)
 
     @models = {}
     @collections = {}
