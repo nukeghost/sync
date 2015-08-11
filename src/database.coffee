@@ -9,7 +9,7 @@ module.exports = class Database
     @bookshelf.plugin('registry')
     @ready = false
 
-    dataTypes = [
+    modelList = [
       require('./database/models/user')(@bookshelf, @config.tablePrefix)
       require('./database/models/channel')(@bookshelf, @config.tablePrefix)
       require('./database/models/globalipban')(@bookshelf, @config.tablePrefix)
@@ -21,14 +21,14 @@ module.exports = class Database
     @models = {}
     @collections = {}
 
-    for dataType in dataTypes
-      { model, collection } = dataType
+    for modelCollection in modelList
+      { model, collection } = modelCollection
       @models[model.prototype.modelName] = model
       if collection?
         @collections[collection.prototype.collectionName] = collection
 
     driver = @knex.client.config.client
-    Promise.map((dataType.model for dataType in dataTypes), (modelClass) =>
+    Promise.reduce((modelCollection.model for modelCollection in modelList), (_, modelClass) =>
       table = modelClass.prototype.tableName
       return @knex.schema.hasTable(table).then((hasTable) =>
         if not hasTable
@@ -42,7 +42,7 @@ module.exports = class Database
             console.error("Failed to create table #{table}: #{err.stack}")
           )
       )
-    ).then(=>
+    , null).then(=>
       @ready = true
       console.log('Database initialized')
     ).catch((err) ->
