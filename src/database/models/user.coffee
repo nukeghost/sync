@@ -6,6 +6,7 @@ bcrypt = Promise.promisifyAll(require 'bcrypt')
 
 module.exports = (bookshelf, tablePrefix = '') ->
   User = bookshelf.Model.extend({
+    modelName: 'User'
     tableName: tablePrefix + 'users'
     hasTimestamps: true
   }, {
@@ -84,6 +85,8 @@ module.exports = (bookshelf, tablePrefix = '') ->
         )
       )
   })
+
+  bookshelf.model('User', User)
 
   return {
     model: User

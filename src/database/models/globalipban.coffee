@@ -1,5 +1,6 @@
 module.exports = (bookshelf, tablePrefix = '') ->
   GlobalIPBan = bookshelf.Model.extend({
+    modelName: 'GlobalIPBan'
     tableName: tablePrefix + 'global_ip_bans'
     hasTimestamps: true
   }, {
@@ -29,6 +30,8 @@ module.exports = (bookshelf, tablePrefix = '') ->
           .notNullable()
       t.specificType('note', 'text character set utf8mb4')
   })
+
+  bookshelf.model('GlobalIPBan', GlobalIPBan)
 
   return {
     model: GlobalIPBan

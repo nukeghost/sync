@@ -1,5 +1,6 @@
 module.exports = (bookshelf, tablePrefix = '') ->
   Channel = bookshelf.Model.extend({
+    modelName: 'Channel'
     tableName: tablePrefix + 'channels'
     hasTimestamps: true
 
@@ -31,6 +32,8 @@ module.exports = (bookshelf, tablePrefix = '') ->
           .notNullable()
       t.timestamps()
   })
+
+  bookshelf.model('Channel', Channel)
 
   return {
     model: Channel

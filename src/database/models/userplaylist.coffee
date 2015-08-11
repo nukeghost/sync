@@ -1,35 +1,23 @@
 module.exports = (bookshelf, tablePrefix = '') ->
-  SavedPlaylist = bookshelf.Model.extend({
-    tableName: tablePrefix + 'saved_playlists'
+  UserPlaylist = bookshelf.Model.extend({
+    modelName: 'UserPlaylist'
+    tableName: tablePrefix + 'user_playlists'
     hasTimestamps: true
-
-    channel: ->
-      return @belongsTo(bookshelf.model('Channel', 'channel_id'))
 
     user: ->
       return @belongsTo(bookshelf.model('User', 'user_id'))
   }, {
-    TYPE_CHANNEL_MAIN: 1
-    TYPE_CHANNEL_SAVED: 2
-    TYPE_USER_SAVED: 3
-
     createTable: (t) ->
       t.increments('id').primary()
-      t.string('name', 255)
-          .index()
-          .notNullable()
-      t.tinyint('type')
-          .notNullable()
-      t.mediumtext('contents')
-          .notNullable()
       t.integer('user_id')
           .unsigned()
           .references(tablePrefix + 'users.id')
           .index()
-      t.integer('channel_id')
-          .unsigned()
-          .references(tablePrefix + 'channels.id')
+      t.string('name', 255)
           .index()
+          .notNullable()
+      t.text('contents')
+          .notNullable()
       t.integer('item_count')
           .unsigned()
           .notNullable()
@@ -44,21 +32,15 @@ module.exports = (bookshelf, tablePrefix = '') ->
 
     createTable_mysql: (t) ->
       t.increments('id').primary()
-      t.specificType('name', 'varchar(255) character set utf8mb4')
-          .index()
-          .notNullable()
-      t.tinyint('type')
-          .notNullable()
-      t.specificType('contents', 'mediumtext character set utf8mb4')
-          .notNullable()
       t.integer('user_id')
           .unsigned()
           .references(tablePrefix + 'users.id')
           .index()
-      t.integer('channel_id')
-          .unsigned()
-          .references(tablePrefix + 'channels.id')
+      t.specificType('name', 'varchar(255) character set utf8mb4')
           .index()
+          .notNullable()
+      t.specificType('contents', 'mediumtext character set utf8mb4')
+          .notNullable()
       t.integer('item_count')
           .unsigned()
           .notNullable()
@@ -72,6 +54,8 @@ module.exports = (bookshelf, tablePrefix = '') ->
           .defaultTo(false)
   })
 
+  bookshelf.model('UserPlaylist', UserPlaylist)
+
   return {
-    model: SavedPlaylist
+    model: UserPlaylist
   }

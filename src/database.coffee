@@ -9,28 +9,29 @@ module.exports = class Database
     @bookshelf.plugin('registry')
     @ready = false
 
-    dataTypes =
-      User: require('./database/models/user')(@bookshelf, @config.tablePrefix)
-      Channel: require('./database/models/channel')(@bookshelf, @config.tablePrefix)
-      GlobalIPBan: require('./database/models/globalipban')(@bookshelf,
-          @config.tablePrefix)
-      SavedPlaylist: require('./database/models/savedplaylist')(@bookshelf,
-          @config.tablePrefix)
+    dataTypes = [
+      require('./database/models/user')(@bookshelf, @config.tablePrefix)
+      require('./database/models/channel')(@bookshelf, @config.tablePrefix)
+      require('./database/models/globalipban')(@bookshelf, @config.tablePrefix)
+      require('./database/models/userplaylist')(@bookshelf, @config.tablePrefix)
+      require('./database/models/channelplaylist')(@bookshelf, @config.tablePrefix)
+      require('./database/models/channellibraryitem')(@bookshelf, @config.tablePrefix)
+    ]
 
     @models = {}
     @collections = {}
 
-    for modelName, dataType of dataTypes
+    for dataType in dataTypes
       { model, collection } = dataType
-      @models[modelName] = model
+      @models[model.prototype.modelName] = model
       if collection?
-        @collections[modelName + 's'] = collection
+        @collections[collection.prototype.collectionName] = collection
 
-    Promise.map((modelClass for _, modelClass of @models), (modelClass) =>
+    driver = @knex.client.config.client
+    Promise.map((dataType.model for dataType in dataTypes), (modelClass) =>
       table = modelClass.prototype.tableName
-      @knex.schema.hasTable(table).then((hasTable) =>
+      return @knex.schema.hasTable(table).then((hasTable) =>
         if not hasTable
-          driver = @knex.client.config.client
           createTableSpecific = modelClass["createTable_#{driver}"]
           createTable =
             if typeof createTableSpecific == 'function' then createTableSpecific
