@@ -6,9 +6,9 @@ module.exports = (bookshelf, tablePrefix = '') ->
   }, {
     createTable: (t) ->
       t.increments('id').primary()
-      t.binary('ip_start', 16)
+      t.binary('ip_start', 17)
           .index()
-      t.binary('ip_end', 16)
+      t.binary('ip_end', 17)
           .index()
       t.integer('banned_by_id')
           .unsigned()
@@ -18,10 +18,10 @@ module.exports = (bookshelf, tablePrefix = '') ->
 
     createTable_mysql: (t) ->
       t.increments('id').primary()
-      t.binary('ip_start', 16)
+      t.binary('ip_start', 17)
           .index()
           .notNullable()
-      t.binary('ip_end', 16)
+      t.binary('ip_end', 17)
           .index()
           .notNullable()
       t.integer('banned_by_id')

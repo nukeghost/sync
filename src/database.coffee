@@ -1,10 +1,12 @@
 knex = require 'knex'
 bookshelf = require 'bookshelf'
 Promise = require 'bluebird'
+{ EventEmitter } = require 'events'
 
-module.exports = class Database
+module.exports = class Database extends EventEmitter
   constructor: (@config) ->
     @knex = knex(@config)
+    @knex.tablePrefix = @config.tablePrefix
     @bookshelf = bookshelf(@knex)
     @bookshelf.plugin('registry')
     @ready = false
@@ -44,6 +46,7 @@ module.exports = class Database
       )
     , null).then(=>
       @ready = true
+      @emit('ready')
       console.log('Database initialized')
     ).catch((err) ->
       console.error('Database initialization failed: ' + err.stack)

@@ -27,7 +27,7 @@ module.exports = (bookshelf, tablePrefix = '') ->
       t.tinyint('status')
           .notNullable()
           .defaultTo(@STATUS_REGISTERED)
-      t.binary('register_ip', 16)
+      t.binary('register_ip', 17)
           .index()
           .notNullable()
       t.timestamps()
