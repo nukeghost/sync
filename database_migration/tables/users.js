@@ -1,5 +1,10 @@
 var Promise = require('bluebird');
-var canonicalizeName = require('../../lib/database/util').canonicalizeName;
+var dbUtil = require('../../lib/database/util');
+var canonicalizeName = dbUtil.canonicalizeName;
+var ipToBinary = dbUtil.ipToBinary;
+
+const EMPTY_IP = new Buffer(17);
+EMPTY_IP.fill(0);
 
 function nextSessionSalt() {
     var buffer = new Buffer(24);
@@ -61,7 +66,7 @@ module.exports = function (oldKnex, db, logger) {
                     email: row.email,
                     profile_image: profileImage,
                     profile_text: profileText,
-                    register_ip: new Buffer(17), // TODO
+                    register_ip: Boolean(row.ip) ? ipToBinary(row.ip) : EMPTY_IP,
                     created_at: new Date(row.time),
                     updated_at: new Date()
                 };
