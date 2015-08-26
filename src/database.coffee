@@ -18,6 +18,7 @@ module.exports = class Database extends EventEmitter
       require('./database/models/userplaylist')(@bookshelf, @config.tablePrefix)
       require('./database/models/channelplaylist')(@bookshelf, @config.tablePrefix)
       require('./database/models/channellibraryitem')(@bookshelf, @config.tablePrefix)
+      require('./database/models/channelrank')(@bookshelf, @config.tablePrefix)
     ]
 
     @models = {}

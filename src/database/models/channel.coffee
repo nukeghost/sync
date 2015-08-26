@@ -5,7 +5,7 @@ module.exports = (bookshelf, tablePrefix = '') ->
     hasTimestamps: true
 
     owner: ->
-      return @belongsTo(bookshelf.model('User', 'owner_id'))
+      return @belongsTo(bookshelf.model('User'), 'owner_id')
   }, {
     STATUS_INACTIVE: -1
     STATUS_REGISTERED: 1

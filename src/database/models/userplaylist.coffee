@@ -5,7 +5,7 @@ module.exports = (bookshelf, tablePrefix = '') ->
     hasTimestamps: true
 
     user: ->
-      return @belongsTo(bookshelf.model('User', 'user_id'))
+      return @belongsTo(bookshelf.model('User'), 'user_id')
   }, {
     createTable: (t) ->
       t.increments('id').primary()

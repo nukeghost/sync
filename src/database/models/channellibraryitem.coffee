@@ -5,7 +5,7 @@ module.exports = (bookshelf, tablePrefix = '') ->
     hasTimestamps: true
 
     channel: ->
-      return @belongsTo(bookshelf.model('Channel', 'channel_id'))
+      return @belongsTo(bookshelf.model('Channel'), 'channel_id')
   }, {
     createTable_sqlite3: (t) ->
       t.increments('id').primary()

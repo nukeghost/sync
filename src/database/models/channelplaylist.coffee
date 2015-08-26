@@ -5,7 +5,7 @@ module.exports = (bookshelf, tablePrefix = '') ->
     hasTimestamps: true
 
     channel: ->
-      return @belongsTo(bookshelf.model('Channel', 'channel_id'))
+      return @belongsTo(bookshelf.model('Channel'), 'channel_id')
   }, {
     TYPE_CHANNEL_MAIN: 1
     TYPE_CHANNEL_SAVED: 2
