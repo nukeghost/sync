@@ -45,9 +45,23 @@ module.exports = class Database extends EventEmitter
           )
       )
     , null).then(=>
+      if @knex.client.config.client == 'mysql'
+        return @_hackMySQLIndex()
+    ).then(=>
       @ready = true
       @emit('ready')
       console.log('Database initialized')
     ).catch((err) ->
       console.error('Database initialization failed: ' + err.stack)
     )
+
+  ###
+  # MySQL requires you to specify a key length when indexing TEXT columns.
+  # However, knex does not provide a convenient way to do this.  Hence,
+  # it has to be done manually.
+  ###
+  _hackMySQLIndex: ->
+    prefix = @config.tablePrefix
+    return @knex.raw("alter table `#{prefix}channel_library_items` add index
+                      migrated_channel_library_items_channel_id_title_index(
+                      `channel_id`, `title`(191))")
