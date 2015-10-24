@@ -54,18 +54,15 @@ export default class RedisClusterClient {
                     secure: node.secure
                 };
 
-                return this.redisClient.evalAsync(ASSIGN_CHANNEL_SCRIPT, 3,
+                // Return optimistically.  If the write fails, then it's likely that
+                // the existing value is the same as the one we were trying to write.
+                // If not, then the server that the client connects to will recognize
+                // that it is not the host of that channel and redirect the client.
+                this.redisClient.evalAsync(ASSIGN_CHANNEL_SCRIPT, 3,
                         channel,
                         JSON.stringify(socketConfig),
-                        node.uuid).then(success => {
-
-                    if (success) {
-                        return socketConfig;
-                    } else {
-                        throw new Error('Encountered socket config race condition ' +
-                                `for channel: "${channel}"`);
-                    }
-                });
+                        node.uuid);
+                return socketConfig;
             }
         });
     }

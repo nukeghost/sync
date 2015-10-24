@@ -75,27 +75,6 @@ describe('RedisClusterClient', function () {
                 assert.deepEqual(config, expected);
             });
         });
-
-        it('throws on race condition', function () {
-            var availableMap = {
-                'uuid1': JSON.stringify({ url: 'unexpected url', secure: false, uuid: 'uuid1' }),
-                'uuid2': JSON.stringify({ url: 'expected url', secure: true, uuid: 'uuid2' })
-            }
-            multiResult = [
-                null,
-                null,
-                availableMap
-            ];
-            redisClient.evalAsync = function () {
-                return Promise.resolve(0);
-            };
-
-            return clusterClient.getSocketConfig('test').then(function (config) {
-                assert(false, 'Expected exception due to race condition');
-            }).catch(function (err) {
-                assert.equal(err.message, 'Encountered socket config race condition for channel: "test"');
-            });
-        });
     });
 
     describe('#constructor', function () {
