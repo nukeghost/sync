@@ -23,6 +23,9 @@ function User(socket) {
     self.chatLimiter = util.newRateLimiter();
     self.reqPlaylistLimiter = util.newRateLimiter();
     self.awaytimer = false;
+    self.registration = {
+        date: Date.now()
+    };
 
     var announcement = Server.getServer().announcement;
     if (announcement != null) {
