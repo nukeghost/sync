@@ -144,7 +144,8 @@ Channel.prototype.initModules = function () {
         "./poll"          : "poll",
         "./kickban"       : "kickban",
         "./ranks"         : "rank",
-        "./accesscontrol" : "password"
+        "./accesscontrol" : "password",
+        "./spamfilter"    : "spamfilter"
     };
 
     var self = this;
