@@ -276,6 +276,9 @@ User.prototype.login = function (name, pw) {
         if (self.inChannel()) {
             opts.channel = self.channel.name;
         }
+        self.registration = {
+            date: user.time
+        };
         self.setFlag(Flags.U_REGISTERED);
         self.refreshAccount(opts, function (err, account) {
             if (err) {
