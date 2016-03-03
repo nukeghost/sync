@@ -39,6 +39,7 @@
     "source-map-support": "^0.4.0",
     "status-message-polyfill": "calzoneman/status-message-polyfill",
     "uuid": "^2.0.1",
+    "v8-profiler": "^5.6.0",
     "yamljs": "^0.1.6"
   },
   "scripts": {

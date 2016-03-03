@@ -63,3 +63,27 @@ function handleLine(line) {
         });
     }
 }
+
+const fs = require('fs');
+const profiler = require('v8-profiler');
+Logger.syslog.log('Process has PID ' + process.pid);
+var profilerOutput = null;
+process.on('SIGUSR2', function onSIGUSR2() {
+    if (!profilerOutput) {
+        profilerOutput = Math.random().toString(36).substring(2) + '.cpuprofile';
+        profiler.startProfiling(profilerOutput);
+        Logger.syslog.log('Starting profile ' + profilerOutput);
+    } else {
+        const profile = profiler.stopProfiling();
+        profile.export(function onExported(error, result) {
+            if (error) {
+                Logger.errlog.log('Error exporting CPU profile: ' + error);
+            } else {
+                fs.writeFileSync(profilerOutput, result);
+                Logger.syslog.log('Saved profile ' + profilerOutput);
+                profile.delete();
+                profilerOutput = null;
+            }
+        });
+    }
+});
