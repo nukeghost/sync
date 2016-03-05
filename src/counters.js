@@ -4,6 +4,7 @@ var counterLog = new Logger.Logger(path.resolve(__dirname, '..', 'counters.log')
 import os from 'os';
 import io from 'socket.io';
 import Socket from 'socket.io/lib/socket';
+import { RedisClient } from 'cytube-common/node_modules/redis/index';
 
 var counters = {};
 
@@ -23,6 +24,12 @@ Socket.prototype._packet = Socket.prototype.packet;
 Socket.prototype.packet = function () {
     this._packet.apply(this, arguments);
     exports.add('socket.io:packet');
+};
+
+RedisClient.prototype._send_command = RedisClient.prototype.send_command;
+RedisClient.prototype.send_command = function () {
+    this._send_command.apply(this, arguments);
+    exports.add('redis:send_command');
 };
 
 function getConnectedSockets() {
