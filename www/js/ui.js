@@ -28,25 +28,21 @@ $("#modflair").click(function () {
     var m = $("#modflair");
     if (m.hasClass("label-success")) {
         USEROPTS.modhat = false;
-        m.removeClass("label-success")
-         .addClass("label-default");
+        m.removeClass("label-success");
+        if (SUPERADMIN) {
+            USEROPTS.adminhat = true;
+            m.addClass("label-danger");
+        } else {
+            m.addClass("label-default");
+        }
+    } else if (m.hasClass("label-danger")) {
+        USEROPTS.adminhat = false;
+        m.removeClass("label-danger")
+            .addClass("label-default");
     } else {
         USEROPTS.modhat = true;
         m.removeClass("label-default")
-         .addClass("label-success");
-    }
-});
-
-$("#adminflair").click(function () {
-    var m = $("#adminflair");
-    if (m.hasClass("label-danger")) {
-        USEROPTS.adminhat = false;
-        m.removeClass("label-danger")
-         .addClass("label-default");
-    } else {
-        USEROPTS.adminhat = true;
-        m.removeClass("label-default")
-         .addClass("label-danger");
+            .addClass("label-success");
     }
 });
 
@@ -832,30 +828,17 @@ applyOpts();
     }
 })();
 
+var EMOTELISTMODAL = $("#emotelist");
+EMOTELISTMODAL.on("hidden.bs.modal", unhidePlayer);
 $("#emotelistbtn").click(function () {
-    EMOTELIST.show();
+    EMOTELISTMODAL.modal();
 });
 
-$("#emotelist-search").keyup(function () {
-    var value = this.value.toLowerCase();
-    if (value) {
-        EMOTELIST.filter = function (emote) {
-            return emote.name.toLowerCase().indexOf(value) >= 0;
-        };
-    } else {
-        EMOTELIST.filter = null;
-    }
-    EMOTELIST.handleChange();
-    EMOTELIST.loadPage(0);
-});
-
-$("#emotelist-alphabetical").prop("checked", USEROPTS.emotelist_sort);
-$("#emotelist-alphabetical").change(function () {
+EMOTELISTMODAL.find(".emotelist-alphabetical").change(function () {
     USEROPTS.emotelist_sort = this.checked;
     setOpt("emotelist_sort", USEROPTS.emotelist_sort);
-    EMOTELIST.handleChange();
-    EMOTELIST.loadPage(0);
 });
+EMOTELISTMODAL.find(".emotelist-alphabetical").prop("checked", USEROPTS.emotelist_sort);
 
 $("#fullscreenbtn").click(function () {
     var elem = document.querySelector("#videowrap .embed-responsive");

@@ -593,7 +593,7 @@ table td {
     border-top-width: 0;
 }
 
-#emotelist table {
+.emotelist-table {
     margin: auto;
 }
 
@@ -618,7 +618,7 @@ table td {
     cursor: pointer;
 }
 
-#emotelist-paginator-container {
+.emotelist-paginator-container {
     text-align: center;
 }
 
@@ -661,6 +661,22 @@ input#logout[type="submit"]:hover {
 }
 
 #newmessages-indicator .glyphicon {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#soundcloud-volume-holder {
+    position: absolute;
+    top: 170px;
+    width: 100%;
+}
+
+#soundcloud-volume-label {
+    margin-left: 2px;
+}
+
+#soundcloud-volume {
+    margin-top: 5px;
     margin-left: 10px;
     margin-right: 10px;
 }
