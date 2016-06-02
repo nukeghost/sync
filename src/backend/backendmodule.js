@@ -1,4 +1,6 @@
 import { RedisClusterClient } from '../io/cluster/redisclusterclient';
+import { DualClusterClient } from '../io/cluster/dualclusterclient';
+import NullClusterClient from '../io/cluster/nullclusterclient';
 import { FrontendPool } from 'cytube-common/lib/redis/frontendpool';
 import RedisClientProvider from 'cytube-common/lib/redis/redisclientprovider';
 import { loadFromToml } from 'cytube-common/lib/configuration/configloader';
@@ -6,6 +8,9 @@ import path from 'path';
 import { BackendConfiguration } from './backendconfiguration';
 import logger from 'cytube-common/lib/logger';
 import redisAdapter from 'socket.io-redis';
+import LegacyConfig from '../config';
+import IOConfiguration from '../configuration/ioconfig';
+import * as Switches from '../switches';
 
 const BACKEND_CONFIG_PATH = path.resolve(__dirname, '..', '..', 'backend.toml');
 
@@ -15,6 +20,7 @@ class BackendModule {
     }
 
     initConfig() {
+        logger.initialize(null, null, LegacyConfig.get('debug'));
         try {
             this.backendConfig = loadFromToml(BackendConfiguration, BACKEND_CONFIG_PATH);
         } catch (error) {
@@ -32,7 +38,8 @@ class BackendModule {
         const redisClientProvider = this.getRedisClientProvider();
         this.redisAdapter = redisAdapter({
             pubClient: redisClientProvider.get(),
-            subClient: redisClientProvider.get()
+            // return_buffers is needed for msgpack-js to function correctly
+            subClient: redisClientProvider.get({ return_buffers: true })
         });
         this.sioEmitter = require('socket.io').instance;
         this.sioEmitter.adapter(this.redisAdapter);
@@ -67,7 +74,19 @@ class BackendModule {
             this.redisClusterClient = new RedisClusterClient(this.getFrontendPool());
         }
 
-        return this.redisClusterClient;
+        if (Switches.isActive(Switches.DUAL_BACKEND) && !this.nullClusterClient) {
+            this.nullClusterClient = new NullClusterClient(
+                    IOConfiguration.fromOldConfig(LegacyConfig));
+        }
+
+        if (Switches.isActive(Switches.DUAL_BACKEND)) {
+            this.clusterClient = new DualClusterClient(this.nullClusterClient,
+                    this.redisClusterClient);
+        } else {
+            this.clusterClient = this.redisClusterClient;
+        }
+
+        return this.clusterClient;
     }
 }
 
