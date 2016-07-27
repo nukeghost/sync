@@ -1077,6 +1077,13 @@ setupCallbacks = function() {
                 .appendTo($("#announcements"));
         }
     });
+
+    socket.on("error", function (error) {
+        if (/blacklisted/i.test(error)) {
+            Callbacks.kick({ reason: error });
+            return;
+        }
+    });
 };
 
 function ioServerConnect(socketConfig) {

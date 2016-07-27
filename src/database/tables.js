@@ -1,3 +1,5 @@
+import Promise from "bluebird";
+
 const TBL_USERS = "" +
     "CREATE TABLE IF NOT EXISTS `users` (" +
         "`id` INT NOT NULL AUTO_INCREMENT," +
@@ -113,7 +115,22 @@ const TBL_CHANNEL_DATA = "" +
     "FOREIGN KEY (`channel_id`) REFERENCES `channels`(`id`) ON DELETE CASCADE" +
     ") CHARACTER SET utf8";
 
-module.exports.init = function (queryfn, cb) {
+const TBL_IP_REPUTATION = function createIPReputationTable(t) {
+    t.charset("utf8mb4");
+    t.binary("ip_start", 17);
+    t.binary("ip_end", 17);
+    t.integer("subnet_width").unsigned();
+    t.timestamp("first_seen").defaultTo(this.fn.now());
+    t.timestamp("last_seen").defaultTo(this.fn.now());
+    t.enu("reputation", ["DEFAULT", "WHITELISTED", "BLACKLISTED"]).defaultTo("DEFAULT");
+    t.boolean("auto_delete").defaultTo(true);
+    t.text("note");
+
+    t.primary(["ip_start", "ip_end"]);
+    t.index(["last_seen", "auto_delete"]);
+};
+
+module.exports.init = function (queryfn, knex, cb) {
     var tables = {
         users: TBL_USERS,
         channels: TBL_CHANNELS,
@@ -127,6 +144,10 @@ module.exports.init = function (queryfn, cb) {
         stats: TBL_STATS,
         meta: TBL_META,
         channel_data: TBL_CHANNEL_DATA
+    };
+
+    const knexTables = {
+        ip_reputation: TBL_IP_REPUTATION
     };
 
     var AsyncQueue = require("../asyncqueue");
@@ -146,6 +167,14 @@ module.exports.init = function (queryfn, cb) {
 
     aq.queue(function (lock) {
         lock.release();
-        cb(hasError);
+        Promise.reduce(Object.keys(knexTables), (_, tableName) => {
+            return knex.schema.createTableIfNotExists(tableName, knexTables[tableName].bind(knex))
+                    .catch(error => {
+                console.log(error.stack);
+                hasError = true;
+            })
+        }, 0).then(() => {
+            process.nextTick(cb, hasError);
+        })
     });
 };

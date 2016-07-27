@@ -15,6 +15,7 @@ var crypto = require("crypto");
 var isTorExit = require("../tor").isTorExit;
 var session = require("../session");
 import counters from '../counters';
+const IPReputation = require('cytube-common/lib/database/ip-reputation')(db.knex);
 
 var CONNECT_RATE = {
     burst: 5,
@@ -24,6 +25,25 @@ var CONNECT_RATE = {
 var ipThrottle = {};
 // Keep track of number of connections per IP
 var ipCount = {};
+
+function ipReputationMiddleware(socket, next) {
+    IPReputation.lookupIP(socket.client.conn.remoteAddress).then(reputation => {
+        socket.ipReputation = reputation;
+        reputation.last_seen = new Date();
+        IPReputation.save(reputation).catch(error => {
+            Logger.errlog.log(error.stack);
+        });
+        if (reputation.reputation === IPReputation.REPUTATION_BLACKLISTED) {
+            return next(new Error("Your IP address is blacklisted"));
+        }
+        next();
+    }).catch(error => {
+        Logger.errlog.log("Unable to determine IP reputation for "
+                + socket.client.conn.remoteAddress);
+        Logger.errlog.log(error.stack);
+        next();
+    });
+}
 
 /**
  * Called before an incoming socket.io connection is accepted.
@@ -247,6 +267,7 @@ module.exports = {
         };
         var io = sio.instance = sio();
 
+        io.use(ipReputationMiddleware);
         io.use(handleAuth);
         io.use(ipForwardingMiddleware(webConfig));
         io.on("connection", handleConnection);

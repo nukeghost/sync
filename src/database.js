@@ -7,6 +7,7 @@ var tables = require("./database/tables");
 var net = require("net");
 var util = require("./utilities");
 import * as Metrics from 'cytube-common/lib/metrics/metrics';
+import knex from 'knex';
 
 var pool = null;
 var global_ipbans = {};
@@ -22,13 +23,25 @@ module.exports.init = function () {
         charset: "UTF8MB4_GENERAL_CI" // Needed for emoji and other non-BMP unicode
     });
 
+    module.exports.knex = knex({
+        client: 'mysql',
+        connection: {
+            host: Config.get("mysql.server"),
+            port: Config.get("mysql.port"),
+            user: Config.get("mysql.user"),
+            password: Config.get("mysql.password"),
+            database: Config.get("mysql.database"),
+            charset: 'UTF8MB4_GENERAL_CI'
+        }
+    });
+
     // Test the connection
     pool.getConnection(function (err, conn) {
         if (err) {
             Logger.errlog.log("Initial database connection failed: " + err.stack);
             process.exit(1);
         } else {
-            tables.init(module.exports.query, function (err) {
+            tables.init(module.exports.query, module.exports.knex, function (err) {
                 if (err) {
                     return;
                 }
