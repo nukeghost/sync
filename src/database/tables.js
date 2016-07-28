@@ -168,10 +168,14 @@ module.exports.init = function (queryfn, knex, cb) {
     aq.queue(function (lock) {
         lock.release();
         Promise.reduce(Object.keys(knexTables), (_, tableName) => {
-            return knex.schema.createTableIfNotExists(tableName, knexTables[tableName].bind(knex))
-                    .catch(error => {
-                console.log(error.stack);
-                hasError = true;
+            return knex.schema.hasTable(tableName).then(exists => {
+                if (!exists) {
+                    return knex.schema.createTable(tableName, knexTables[tableName].bind(knex))
+                            .catch(error => {
+                        console.log(error.stack);
+                        hasError = true;
+                    })
+                }
             })
         }, 0).then(() => {
             process.nextTick(cb, hasError);
