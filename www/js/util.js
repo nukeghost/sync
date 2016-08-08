@@ -1,4 +1,4 @@
-function makeAlert(title, text, klass) {
+function makeAlert(title, text, klass, textOnly) {
     if(!klass) {
         klass = "alert-info";
     }
@@ -7,8 +7,9 @@ function makeAlert(title, text, klass) {
 
     var al = $("<div/>").addClass("alert")
         .addClass(klass)
-        .html(text)
         .appendTo(wrap);
+    textOnly ? al.text(text) : al.html(text) ;
+
     $("<br/>").prependTo(al);
     $("<strong/>").text(title).prependTo(al);
     $("<button/>").addClass("close pull-right").html("&times;")
@@ -51,6 +52,8 @@ function formatURL(data) {
             return data.id;
         case "hb":
             return "http://hitbox.tv/" + data.id;
+        case "sb":
+            return "https://streamable.com/" + data.id;
         default:
             return "#";
     }
@@ -1369,6 +1372,13 @@ function parseMediaLink(url) {
         return {
             id: m[1],
             type: "vm"
+        };
+    }
+
+    if((m = url.match(/streamable\.com\/([\w-]+)/))) {
+        return {
+            id: m[1],
+            type: "sb"
         };
     }
 
