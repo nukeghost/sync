@@ -7,11 +7,17 @@ var tables = require("./database/tables");
 var net = require("net");
 var util = require("./utilities");
 import * as Metrics from 'cytube-common/lib/metrics/metrics';
+import Promise from 'bluebird';
+import { LoggerFactory } from '@calzoneman/jsli';
 
+const LOGGER = LoggerFactory.getLogger('Database');
 var pool = null;
 var global_ipbans = {};
 
 module.exports.init = function () {
+    Promise.promisifyAll(mysql.loadClass("Pool"));
+    Promise.promisifyAll(mysql.loadClass("Connection"));
+
     pool = mysql.createPool({
         host: Config.get("mysql.server"),
         port: Config.get("mysql.port"),
@@ -101,6 +107,24 @@ module.exports.query = function (query, sub, callback) {
                 conn.release();
             }
         }
+    });
+};
+
+/**
+ * Execute a query (Promise-based API)
+ */
+// @flow
+module.exports.queryAsync = function queryAsync(query: string, substitutions: mixed[]) {
+    const timer = Metrics.startTimer('db:queryTime');
+    return pool.getConnectionAsync().then(conn => {
+        return conn.queryAsync(query, substitutions).catch(error => {
+            LOGGER.error('Query "%s" failed: %s', query, error.stack);
+            throw error;
+        }).finally(() => {
+            conn.release();
+        });
+    }).finally(() => {
+        Metrics.stopTimer(timer);
     });
 };
 

@@ -57,7 +57,7 @@
     "postinstall": "./postinstall.sh",
     "server-dev": "babel -D --watch --source-maps --loose es6.destructuring,es6.forOf --out-dir lib/ src/",
     "generate-userscript": "$npm_node_execpath gdrive-userscript/generate-userscript $@ > www/js/cytube-google-drive.user.js",
-    "test": "mocha"
+    "test": "mocha --recursive"
   },
   "devDependencies": {
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
