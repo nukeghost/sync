@@ -15,9 +15,6 @@ var pool = null;
 var global_ipbans = {};
 
 module.exports.init = function () {
-    Promise.promisifyAll(mysql.loadClass("Pool"));
-    Promise.promisifyAll(mysql.loadClass("Connection"));
-
     pool = mysql.createPool({
         host: Config.get("mysql.server"),
         port: Config.get("mysql.port"),
@@ -35,6 +32,9 @@ module.exports.init = function () {
             Logger.errlog.log("Initial database connection failed: " + err.stack);
             process.exit(1);
         } else {
+            Promise.promisifyAll(pool.__proto__);
+            Promise.promisifyAll(conn.__proto__);
+
             tables.init(module.exports.query, function (err) {
                 if (err) {
                     return;
