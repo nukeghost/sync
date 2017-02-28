@@ -12,6 +12,7 @@ import { ChannelStateSizeError } from '../errors';
 import Promise from 'bluebird';
 import { EventEmitter } from 'events';
 import { throttle } from '../util/throttle';
+import { ChannelAuditLogger } from './audit-logger';
 
 const USERCOUNT_THROTTLE = 10000;
 
@@ -75,8 +76,10 @@ class ReferenceCounter {
     }
 }
 
-function Channel(name) {
+// @flow
+function Channel(name, auditLogger: ChannelAuditLogger) {
     this.name = name;
+    this.auditLogger = auditLogger;
     this.uniqueName = name.toLowerCase();
     this.modules = {};
     this.logger = new Logger.Logger(path.join(__dirname, "..", "..", "chanlogs",

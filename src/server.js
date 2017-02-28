@@ -52,6 +52,8 @@ import session from './session';
 import { LegacyModule } from './legacymodule';
 import { PartitionModule } from './partition/partitionmodule';
 import * as Switches from './switches';
+import { ChannelAuditLogDB } from './database/channel-audit-log';
+import { ChannelAuditLogger } from './channel/audit-logger';
 
 var Server = function () {
     var self = this;
@@ -83,6 +85,9 @@ var Server = function () {
     self.db = Database;
     self.db.init();
     ChannelStore.init();
+
+    self.channelAuditLogDB = new ChannelAuditLogDB(self.db);
+    self.channelAuditLogger = new ChannelAuditLogger(self.channelAuditLogDB);
 
     // webserver init -----------------------------------------------------
     const ioConfig = IOConfiguration.fromOldConfig(Config);
@@ -212,7 +217,7 @@ Server.prototype.getChannel = function (name) {
             return self.channels[i];
     }
 
-    var c = new Channel(name);
+    var c = new Channel(name, self.channelAuditLogger);
     c.on("empty", function () {
         self.unloadChannel(c);
     });

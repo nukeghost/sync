@@ -575,6 +575,9 @@ PlaylistModule.prototype.handleDelete = function (user, data) {
         if (self._delete(data)) {
             self.channel.logger.log("[playlist] " + user.getName() + " deleted " +
                                     plitem.media.title);
+            self.channel.auditLogger.log(self.channel.id, user.getName(), 'playlist', 'deleteItem', {
+                item: plitem
+            });
         }
 
         lock.release();
@@ -594,6 +597,10 @@ PlaylistModule.prototype.handleSetTemp = function (user, data) {
 
     item.temp = data.temp;
     this.channel.broadcastAll("setTemp", data);
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'playlist', 'setTemp', {
+        item: convertMediaForAuditLog(item),
+        temp: data.temp
+    });
 
     if (!data.temp && this.channel.modules.library) {
         this.channel.modules.library.cacheMedia(item.media);
@@ -642,10 +649,29 @@ PlaylistModule.prototype.handleMoveMedia = function (user, data) {
         self.channel.logger.log("[playlist] " + user.getName() + " moved " +
                                 from.media.title +
                                 (after ? " after " + after.media.title : ""));
+        var afterWhat = after ? convertMediaForAuditLog(after)
+                              : (data.after === 'prepend' ? { special: 'beginning' }
+                                                          : { special: 'end' });
+        self.channel.auditLogger.log(self.channel.id, user.getName(), 'playlist', 'moveItem', {
+            from: convertMediaForAuditLog(from),
+            after: afterWhat
+        });
         lock.release();
         self.channel.refCounter.unref("PlaylistModule::handleMoveMedia");
     });
 };
+
+function convertMediaForAuditLog(item) {
+    return {
+        media: {
+            id: item.media.id,
+            title: item.media.title,
+            seconds: item.media.seconds,
+            type: item.media.type
+        },
+        queueby: item.queueby
+    };
+}
 
 PlaylistModule.prototype.handleJumpTo = function (user, data) {
     if (typeof data !== "string" && typeof data !== "number") {
@@ -668,6 +694,10 @@ PlaylistModule.prototype.handleJumpTo = function (user, data) {
         this.current = to;
         this.startPlayback();
         this.channel.logger.log("[playlist] " + user.getName() + " skipped " + title);
+        this.channel.auditLogger.log(this.channel.id, user.getName(), 'playlist', 'jumpTo', {
+            from: convertMediaForAuditLog(old),
+            to: convertMediaForAuditLog(to)
+        });
 
         if (old && old.temp && old !== to) {
             this._delete(old.uid);
@@ -683,7 +713,13 @@ PlaylistModule.prototype.handlePlayNext = function (user) {
     var title = "";
     if (this.current) {
         title = this.current.media.title;
+    } else {
+        return;
     }
+
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'playlist', 'playNext', {
+        current: convertMediaForAuditLog(this.current),
+    });
 
     this.channel.logger.log("[playlist] " + user.getName() + " skipped " + title);
     this._playNext();
@@ -695,6 +731,7 @@ PlaylistModule.prototype.handleClear = function (user) {
     }
 
     this.channel.logger.log("[playlist] " + user.getName() + " cleared the playlist");
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'playlist', 'clear');
     this.current = null;
     this.items.clear();
     this.semaphore.reset();
@@ -715,6 +752,7 @@ PlaylistModule.prototype.handleShuffle = function (user) {
     }
 
     this.channel.logger.log("[playlist] " + user.getName() + " shuffled the playlist");
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'playlist', 'shuffle');
 
     var pl = this.items.toArray(false);
     this.items.clear();
@@ -766,6 +804,9 @@ PlaylistModule.prototype.handleAssignLeader = function (user, data) {
             rank: old.account.effectiveRank
         });
         this.channel.logger.log("[mod] " + user.getName() + " removed leader from " + old.getName());
+        this.channel.auditLogger.log(this.channel.id, user.getName(), 'playlist', 'removeLeader', {
+            leader: old.getName()
+        });
     }
 
     if (!name) {
@@ -775,6 +816,9 @@ PlaylistModule.prototype.handleAssignLeader = function (user, data) {
 
     for (var i = 0; i < this.channel.users.length; i++) {
         if (this.channel.users[i].getName() === name) {
+            this.channel.auditLogger.log(this.channel.id, user.getName(), 'playlist', 'assignLeader', {
+                leader: name
+            });
             this.channel.logger.log("[playlist] Assigned leader: " + name);
             this.leader = this.channel.users[i];
             if (this._leadInterval) {
@@ -974,6 +1018,9 @@ PlaylistModule.prototype._addItem = function (media, data, user, cb) {
         var m = item.media;
         self.channel.logger.log("[playlist] " + (data.queueby || "(anonymous)") +
             " added " + m.title + " (" + m.type + ":" + m.id + ")");
+        self.channel.auditLogger.log(self.channel.id, data.queueby || null, 'playlist', 'addItem', {
+            item: convertMediaForAuditLog(item)
+        });
 
         var perms = self.channel.modules.permissions;
         self.channel.users.forEach(function (u) {
@@ -1015,16 +1062,6 @@ PlaylistModule.prototype._addItem = function (media, data, user, cb) {
         }
     }
 };
-
-function isExpired(media) {
-    if (media.meta.expiration && media.meta.expiration < Date.now()) {
-        return true;
-    } else if (media.type === "gd") {
-        return !media.meta.object;
-    } else if (media.type === "vi") {
-        return !media.meta.direct;
-    }
-}
 
 PlaylistModule.prototype.startPlayback = function (time) {
     var self = this;
@@ -1197,6 +1234,10 @@ PlaylistModule.prototype.handleClean = function (user, msg, meta) {
 
     this.channel.logger.log("[playlist] " + user.getName() + " used " + cmd +
             " with target regex: " + target);
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'playlist', 'clean', {
+        target: target.source,
+        cleanType: cmd === '/clean' ? 'user' : 'title'
+    });
 
     var cleanfn;
     if (cmd === "/clean") {
