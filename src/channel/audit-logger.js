@@ -6,6 +6,10 @@ import * as Metrics from 'cytube-common/lib/metrics/metrics';
 
 const LOGGER = LoggerFactory.getLogger('ChannelAuditLogger');
 
+export type EventCategory =
+      'playlist'
+    | 'kickban';
+
 class ChannelAuditLogger {
     db: ChannelAuditLogDB;
 
@@ -13,12 +17,12 @@ class ChannelAuditLogger {
         this.db = db;
     }
 
-    log(channelId: number, user: string, eventName: string, eventData: Object = {}) {
-        Metrics.incCounter('channelAuditLogger:log');
-        return this.db.insertEvent(channelId, user, eventName, eventData).then(res => {
+    log(channelId: number, user: string, eventCategory: EventCategory, eventName: string, eventData: Object = {}) {
+        Metrics.incCounter('chanAuditLog:log');
+        return this.db.insertEvent(channelId, user, eventCategory, eventName, eventData).then(res => {
             LOGGER.debug('Recorded event "%s" for channel ID %d', eventName, channelId);
         }).catch(err => {
-            Metrics.incCounter('channelAuditLogger:log:error');
+            Metrics.incCounter('chanAuditLog:logerr');
             LOGGER.error('Failed to record event "%s" for channel ID %d: %s',
                          eventName,
                          channelId,

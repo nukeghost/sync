@@ -7,7 +7,7 @@ describe('ChannelAuditLogDB', () => {
     var dummyDB;
     beforeEach(() => {
         dummyDB = {
-            insertEvent(channelId, user, eventName, eventData) {
+            insertEvent(channelId, user, eventCategory, eventName, eventData) {
                 return Promise.resolve();
             }
         };
@@ -18,21 +18,24 @@ describe('ChannelAuditLogDB', () => {
     describe('#log', () => {
         var channelId;
         var user;
+        var eventCategory;
         var eventName;
         var eventPayload;
 
         beforeEach(() => {
             channelId = 1234;
             user = 'anonymous';
+            eventCategory = 'food';
             eventName = 'someEvent';
             eventPayload = { pizza: 'cheese' };
         });
 
         it('logs an event', () => {
-            dummyDB.insertEvent = function insertEvent(channelId_, user_, eventName_, eventData_) {
+            dummyDB.insertEvent = function insertEvent(channelId_, user_, eventCategory_, eventName_, eventData_) {
                 try {
                     assert.strictEqual(channelId_, channelId);
                     assert.strictEqual(user_, user);
+                    assert.strictEqual(eventCategory_, eventCategory);
                     assert.strictEqual(event_, eventName);
                     assert.deepStrictEqual(eventPayload_, eventPayload);
                     return Promise.resolve();
@@ -41,15 +44,15 @@ describe('ChannelAuditLogDB', () => {
                 }
             };
 
-            return auditLogger.log(channelId, user, eventName, eventPayload);
+            return auditLogger.log(channelId, user, eventCategory, eventName, eventPayload);
         });
 
         it('fails open', () => {
-            dummyDB.insertEvent = function insertEvent(channelId_, user_, eventName_, eventData_) {
+            dummyDB.insertEvent = function insertEvent(channelId_, user_, eventCategory_, eventName_, eventData_) {
                 return Promise.reject(new Error('Oh no!'));
             };
 
-            return auditLogger.log(channelId, user, eventName, eventPayload);
+            return auditLogger.log(channelId, user, eventCategory, eventName, eventPayload);
         });
     });
 });
