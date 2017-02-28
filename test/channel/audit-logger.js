@@ -54,5 +54,15 @@ describe('ChannelAuditLogDB', () => {
 
             return auditLogger.log(channelId, user, eventCategory, eventName, eventPayload);
         });
+
+        it("doesn't log an event for an unregistered channel (id <= 0)", () => {
+            dummyDB.insertEvent = function insertEvent(channelId_, user_, eventCategory_, eventName_, eventData_) {
+                throw new Error('DB should not be called for unregistered channel');
+            };
+
+            return auditLogger.log(0, user, eventCategory, eventName, eventPayload).then(() => {
+                return auditLogger.log(-1, user, eventCategory, eventName, eventPayload);
+            });
+        });
     });
 });
