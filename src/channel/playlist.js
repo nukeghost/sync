@@ -576,7 +576,7 @@ PlaylistModule.prototype.handleDelete = function (user, data) {
             self.channel.logger.log("[playlist] " + user.getName() + " deleted " +
                                     plitem.media.title);
             self.channel.auditLogger.log(self.channel.id, user.getName(), 'playlist', 'deleteItem', {
-                item: plitem
+                item: convertMediaForAuditLog(plitem)
             });
         }
 
