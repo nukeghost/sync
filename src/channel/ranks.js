@@ -109,6 +109,7 @@ RankModule.prototype.handleRankChange = function (user, data) {
         return;
     }
 
+    const self = this;
     if (receiver) {
         var current = Math.max(receiver.account.globalRank, receiver.account.channelRank);
         if (current >= userrank && !(userrank === 4 && current === 4)) {
@@ -150,17 +151,26 @@ RankModule.prototype.handleRankChange = function (user, data) {
                 user.socket.emit("channelRankFail", {
                     msg: "Database failure when updating rank"
                 });
+            } else {
+                self.channel.auditLogger.log(self.channel.id, user.getName(), 'rank', 'setRank', {
+                    user: receiver.getName(),
+                    rank: rank
+                });
             }
         });
     } else {
         data.userrank = userrank;
-        var self = this;
         this.updateDatabase(data, function (err) {
             if (err) {
                 user.socket.emit("channelRankFail", {
                     msg: "Updating user rank failed: " + err
                 });
+                return;
             }
+            self.channel.auditLogger.log(self.channel.id, user.getName(), 'rank', 'setRank', {
+                user: name,
+                rank: rank
+            });
             self.channel.logger.log("[mod] " + user.getName() + " set " + data.name +
                                     "'s rank to " + rank);
             self.channel.broadcastAll("setUserRank", data);

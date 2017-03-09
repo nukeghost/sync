@@ -334,6 +334,9 @@ OptionsModule.prototype.handleSetOptions = function (user, data) {
         }
     }
 
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'options', 'setOptions', {
+        options: data
+    });
     this.channel.logger.log("[mod] " + user.getName() + " updated channel options");
     if (sendUpdate) {
         this.sendOpts(this.channel.users);

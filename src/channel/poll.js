@@ -153,6 +153,13 @@ PollModule.prototype.handleNewPoll = function (user, data) {
     }
 
     this.poll = poll;
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'poll', 'createPoll', {
+        poll: {
+            title: title,
+            obscured: obscured,
+            options: opts
+        }
+    });
     this.broadcastPoll(true);
     this.channel.logger.log("[poll] " + user.getName() + " opened poll: '" + poll.title + "'");
 };
@@ -183,6 +190,11 @@ PollModule.prototype.handleClosePoll = function (user) {
             clearTimeout(this.poll.timer);
         }
 
+        this.channel.auditLogger.log(this.channel.id, user.getName(), 'poll', 'closePoll', {
+            poll: {
+                title: title
+            }
+        });
         this.channel.broadcastAll("closePoll");
         this.channel.logger.log("[poll] " + user.getName() + " closed the active poll");
         this.poll = null;

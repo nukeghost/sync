@@ -149,13 +149,13 @@ PermissionsModule.prototype.handleSetPermissions = function (user, perms) {
             if (isNaN(perms[key])) {
                 delete perms[key];
             }
+        } else if (!(key in this.permissions)) {
+            delete perms[key];
         }
     }
 
     for (var key in perms) {
-        if (key in this.permissions) {
-            this.permissions[key] = perms[key];
-        }
+        this.permissions[key] = perms[key];
     }
 
     if ("seeplaylist" in perms) {
@@ -163,6 +163,10 @@ PermissionsModule.prototype.handleSetPermissions = function (user, perms) {
             this.channel.modules.playlist.sendPlaylist(this.channel.users);
         }
     }
+
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'permissions', 'setPermissions', {
+        permissions: perms
+    });
 
     this.channel.logger.log("[mod] " + user.getName() + " updated permissions");
     this.sendPermissions(this.channel.users);

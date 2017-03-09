@@ -187,6 +187,9 @@ KickBanModule.prototype.handleCmdKick = function (user, msg, meta) {
     }
 
     target.kick(reason);
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'moderation', 'kickUser', {
+        user: target.getName()
+    });
     this.channel.logger.log("[mod] " + user.getName() + " kicked " + target.getName() +
                             " (" + reason + ")");
     if (this.channel.modules.chat) {
@@ -207,6 +210,7 @@ KickBanModule.prototype.handleCmdKickAnons = function (user, msg, meta) {
         }
     });
 
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'moderation', 'kickAnons');
     this.channel.logger.log("[mod] " + user.getName() + " kicked anonymous users.");
     if (this.channel.modules.chat) {
         this.channel.modules.chat.sendModMessage(user.getName() + " kicked anonymous " +
@@ -298,6 +302,10 @@ KickBanModule.prototype.banName = function (actor, name, reason, cb) {
 
         return Q.nfcall(db.channels.ban, chan.name, "*", name, reason, actor.getName());
     }).then(function () {
+        chan.auditLogger.log(chan.id, actor.getName(), 'moderation', 'banUserByName', {
+            user: name,
+            reason: reason
+        });
         chan.logger.log("[mod] " + actor.getName() + " namebanned " + name);
         if (chan.modules.chat) {
             chan.modules.chat.sendModMessage(actor.getName() + " namebanned " + name,
@@ -343,6 +351,11 @@ KickBanModule.prototype.banIP = function (actor, ip, name, reason, cb) {
         return Q.nfcall(db.channels.ban, chan.name, ip, name, reason, actor.getName());
     }).then(function () {
         var cloaked = util.cloakIP(ip);
+        chan.auditLogger.log(chan.id, actor.getName(), 'moderation', 'banUserByIP', {
+            user: name,
+            ipMask: cloaked,
+            reason: reason
+        });
         chan.logger.log("[mod] " + actor.getName() + " banned " + cloaked + " (" + name + ")");
         if (chan.modules.chat) {
             chan.modules.chat.sendModMessage(actor.getName() + " banned " +
@@ -430,6 +443,9 @@ KickBanModule.prototype.handleUnban = function (user, data) {
         }
 
         self.sendUnban(self.channel.users, data);
+        self.channel.auditLogger.log(self.channel.id, user.getName(), 'moderation', 'unbanUser', {
+            user: data.name
+        });
         self.channel.logger.log("[mod] " + user.getName() + " unbanned " + data.name);
         if (self.channel.modules.chat) {
             var banperm = self.channel.modules.permissions.permissions.ban;

@@ -61,6 +61,9 @@ LibraryModule.prototype.handleUncache = function (user, data) {
             return;
         }
 
+        chan.auditLogger.log(chan.id, user.getName(), 'library', 'deleteItem', {
+            item: { id: data.id }
+        });
         chan.logger.log("[library] " + user.getName() + " deleted " + data.id +
                         "from the library");
         chan.refCounter.unref("LibraryModule::handleUncache");
