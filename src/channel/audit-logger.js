@@ -8,8 +8,14 @@ import Promise from 'bluebird';
 const LOGGER = LoggerFactory.getLogger('ChannelAuditLogger');
 
 export type EventCategory =
-      'playlist'
-    | 'kickban';
+      'chat'
+    | 'library'
+    | 'moderation'
+    | 'options'
+    | 'permissions'
+    | 'playlist'
+    | 'poll'
+    | 'rank';
 
 class ChannelAuditLogger {
     db: ChannelAuditLogDB;

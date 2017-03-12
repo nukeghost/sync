@@ -161,6 +161,10 @@ EmoteModule.prototype.handleUpdateEmote = function (user, data) {
     var chan = this.channel;
     chan.broadcastAll("updateEmote", f);
 
+    chan.auditLogger.log(chan.id, user.getName(), 'chat', 'updateEmote', {
+        name: f.name,
+        image: f.image
+    });
     chan.logger.log("[mod] " + user.getName() + " updated emote: " + f.name + " -> " +
                     f.image);
 };
@@ -176,6 +180,7 @@ EmoteModule.prototype.handleImportEmotes = function (user, data) {
         return;
     }
 
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'chat', 'importEmotes');
     this.emotes.importList(data.map(validateEmote).filter(function (f) {
         return f !== false;
     }));
@@ -196,6 +201,9 @@ EmoteModule.prototype.handleRemoveEmote = function (user, data) {
     }
 
     this.emotes.removeEmote(data);
+    this.channel.auditLogger.log(this.channel.id, user.getName(), 'chat', 'removeEmote', {
+        name: data.name
+    });
     this.channel.logger.log("[mod] " + user.getName() + " removed emote: " + data.name);
     this.channel.broadcastAll("removeEmote", data);
 };
