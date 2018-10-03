@@ -84,7 +84,7 @@ function initFFLog() {
 }
 
 function fixRedirectIfNeeded(urldata, redirect) {
-    if (!/^https:/.test(redirect)) {
+    if (!/^https?:/.test(redirect)) {
         redirect = urldata.protocol + "//" + urldata.host + redirect;
     }
 
@@ -134,8 +134,8 @@ function getCookie(res) {
 function testUrl(url, cb, params = { redirCount: 0, cookie: '' }) {
     const { redirCount, cookie } = params;
     var data = urlparse.parse(url);
-    if (!/https:/.test(data.protocol)) {
-        return cb("Only links starting with 'https://' are supported " +
+    if (!/https?:/.test(data.protocol)) {
+        return cb("Only links starting with 'http://' or 'https://' are supported " +
                   "for raw audio/video support");
     }
 
