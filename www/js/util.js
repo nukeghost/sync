@@ -1440,7 +1440,7 @@ function parseMediaLink(url) {
     /* Raw file */
     var tmp = url.split("?")[0];
     if (tmp.match(/^https?:\/\//)) {
-        if (tmp.match(/^http:/)) {
+        if (tmp.match(/^ftp:/)) {
             Callbacks.queueFail({
                 link: url,
                 msg: "Raw files must begin with 'https'.  Plain http is not supported."
