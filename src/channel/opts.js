@@ -212,10 +212,10 @@ OptionsModule.prototype.handleSetOptions = function (user, data) {
             });
         } else {
             var urldata = url.parse(link);
-            if (!urldata.protocol || urldata.protocol !== 'https:') {
+            if (!urldata.protocol || urldata.protocol !== 'http:' || urldata.protocol !== 'https:') {
                 user.socket.emit("validationError", {
                     target: "#cs-externalcss",
-                    message: prefix + " URL must begin with 'https://'"
+                    message: prefix + " URL must begin with 'http:// or https://'"
                 });
             } else if (!urldata.host) {
                 user.socket.emit("validationError", {
@@ -251,10 +251,10 @@ OptionsModule.prototype.handleSetOptions = function (user, data) {
             });
         } else {
             const urldata = url.parse(link);
-            if (!urldata.protocol || urldata.protocol !== 'https:') {
+            if (!urldata.protocol || urldata.protocol !== 'http:' || urldata.protocol !== 'https:') {
                 user.socket.emit("validationError", {
                     target: "#cs-externaljs",
-                    message: prefix + " URL must begin with 'https://'"
+                    message: prefix + " URL must begin with 'http:// or https://'"
                 });
             } else if (!urldata.host) {
                 user.socket.emit("validationError", {
